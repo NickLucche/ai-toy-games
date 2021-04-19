@@ -1,6 +1,6 @@
 from typing import Callable
 import numpy as np
-from sliding_block_puzzle import Direction, SBPuzzle
+from games.sliding_block_puzzle import Direction, SBPuzzle
 from collections import deque
 import time
 from heapq import heapify, heappop, heappush
@@ -147,8 +147,8 @@ def a_star_search(init_node: Node,
     explored_set = set()
     start = time.time()
     while len(frontier):
-        node = heappop(frontier)  # pop from set too?
-
+        node = heappop(frontier)  
+        frontier_set.pop(node.hash) # pop from set too?
         # consider goal state as you pop from queue rather than when generating successors, as there's no
         # guarantee successors will have (in general) a good f; here we're sure node is the best guess atm
         if SBPuzzle.goal_test(node.state):
@@ -169,3 +169,11 @@ def a_star_search(init_node: Node,
                 add_to_frontier(child)
 
     return None, time.time() - start
+
+
+# iterativa deepening a*
+def ida_search(init_node: Node,
+                  h: Callable[[Node], float],
+                  path_cost: bool = True,
+                  heuristic: bool = True):
+    pass
