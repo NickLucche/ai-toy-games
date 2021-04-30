@@ -6,6 +6,7 @@ curdir = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, os.path.abspath(os.path.join(curdir, os.pardir)))
 from games import CSP
 
+
 class NQueens(CSP):
     # solutions exists for all natural numbers n with the exception of n = 2 and n = 3.
     size: int
@@ -25,14 +26,21 @@ class NQueens(CSP):
         self._block_size = (render_width // n, render_height // n)
         offset = (render_width % self._block_size[0],
                   render_height % self._block_size[1])
-        self._render_grid = (np.linspace(offset[0], render_width - offset[0],
-                                         n+1, dtype=np.int32),
-                             np.linspace(offset[1], render_height - offset[1],
-                                         n+1, dtype=np.int32))
+        self._render_grid = (np.linspace(offset[0],
+                                         render_width - offset[0],
+                                         n + 1,
+                                         dtype=np.int32),
+                             np.linspace(offset[1],
+                                         render_height - offset[1],
+                                         n + 1,
+                                         dtype=np.int32))
         super().__init__(var_names=var_names)
         # initialize state with empty assignment (all -1)
-        self._state = init_state if init_state is not None else np.ones(
-            n, dtype=np.int32) * (-1)
+        if init_state is not None:
+            self._state = np.empty_like(init_state)
+            self._state[:] = init_state
+        else:
+            self._state = np.ones(n, dtype=np.int32) * (-1)
 
     @property
     def unassigned_vars(self):
@@ -60,7 +68,7 @@ class NQueens(CSP):
                 continue
             for j in range(i + 1, self.size):
                 if self._state[j] > -1 and (j - i) == np.abs(self._state[i] -
-                                                           self._state[j]):
+                                                             self._state[j]):
                     return False
         return True
 
@@ -125,7 +133,6 @@ class NQueens(CSP):
 
     def render(self):
         canvas = np.ones(self._render_shape, dtype=np.uint8) * 255
-        print(self._render_grid)
         # draw grid
         for x, y in zip(*self._render_grid):
             cv2.line(canvas, (x, 0), (x, self._render_grid[1][-1]), (0, 0, 0),
@@ -136,16 +143,18 @@ class NQueens(CSP):
         for x, y in enumerate(self._state):
             if y > -1:
                 canvas = cv2.circle(
-                    canvas, (x * self._block_size[0] + self._block_size[0] // 2,
-                            y * self._block_size[1] + self._block_size[1] // 2),
+                    canvas,
+                    (x * self._block_size[0] + self._block_size[0] // 2,
+                     y * self._block_size[1] + self._block_size[1] // 2),
                     self._block_size[0] // 4, (0, 0, 0),
                     thickness=-1)
         return canvas
 
+
 if __name__ == '__main__':
     game = NQueens(n=16)
     for i in range(16):
-        _, valid = game.step((i,i))
+        _, valid = game.step((i, i))
         print('Consistent step:', valid)
     cv2.imshow('N Queens', game.render())
     if cv2.waitKey(0) & 0xFF == ord('q'):

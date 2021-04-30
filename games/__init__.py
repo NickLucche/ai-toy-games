@@ -32,7 +32,7 @@ class CSP:
     def assignment(self):
         return self._state.copy()
 
-    def _check_consistency():
+    def _check_consistency(self):
         raise NotImplementedError()
 
     @property
