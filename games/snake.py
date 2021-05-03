@@ -53,7 +53,7 @@ class Snake:
     def step(self, action: Action):
         if self.done:
             return None, self.done
-        direction = dir_offset[action.value]
+        direction = self.current_dir if action is None else dir_offset[action.value]
         # can't go opposite direction
         if self.current_dir @ direction == -1:
             direction = self.current_dir
@@ -78,7 +78,7 @@ class Snake:
         return [block.copy() for block in self.body], self.done
 
     def _move_body(self, offset: Tuple[int, int]):
-        newhead = self.body[0] + offset
+        newhead = np.remainder(self.body[0] + offset, self.size)
         # check food
         if self.food is not None and (newhead == self.food).all():
             self.food = None
@@ -93,7 +93,7 @@ class Snake:
                 return False
             self.body[i][:] = self.body[i - 1]
         # update head too
-        self.body[0] += offset
+        self.body[0] = newhead
         return True
 
     def _spawn_food(self):
@@ -130,13 +130,19 @@ RIGHT_KEY = "d"
 DOWN_KEY = "s"
 QUIT = "q"
 if __name__ == '__main__':
-    snake = Snake(30, render_width=900, render_height=900)
+    continuous_movement = True
+    speed = 15
+    snake = Snake(30, walls=False, render_width=900, render_height=900)
     cv2.imshow('Snake', snake.render())
+
     while not snake.done:
-        # print(snake.body)
-        keystroke = cv2.waitKey(0)
+        keystroke = cv2.waitKey(int(1/speed*1e3) if continuous_movement else 0)
+        
+        # no key pressed
+        if keystroke == -1:
+            action = None
         # ord gets unicode from one-char string
-        if keystroke == ord(FORWARD_KEY):
+        elif keystroke == ord(FORWARD_KEY):
             action = Action.UP
         elif keystroke == ord(LEFT_KEY):
             action = Action.LEFT
@@ -144,7 +150,7 @@ if __name__ == '__main__':
             action = Action.RIGHT
         elif keystroke == ord(DOWN_KEY):
             action = Action.DOWN
-        elif keystroke == ord(QUIT):
+        elif keystroke == ord(QUIT) or keystroke==27:
             break
         else:
             print("INVALID KEY")
@@ -152,5 +158,5 @@ if __name__ == '__main__':
         snake.step(action)
         # snake.step(list(Action)[np.random.randint(4)])
         cv2.imshow('Snake', snake.render())
-        # if cv2.waitKey(0) & 0xFF == ord('q'):
+
     cv2.destroyAllWindows()

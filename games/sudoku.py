@@ -1,4 +1,5 @@
 import os, sys
+
 curdir = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, os.path.abspath(os.path.join(curdir, os.pardir)))
 from games import CSP
@@ -17,24 +18,24 @@ class Sudoku(CSP):
     _state: np.ndarray
     _min_prefilled: int
 
-    def __init__(self,
-                 number_of_prefilled: int,
-                 init_state: np.ndarray = None,
-                 var_names: List[str] = None,
-                 render_width: int = 900,
-                 render_height: int = 900) -> None:
+    def __init__(
+        self,
+        number_of_prefilled: int,
+        init_state: np.ndarray = None,
+        var_names: List[str] = None,
+        render_width: int = 900,
+        render_height: int = 900,
+    ) -> None:
         self._render_shape = (render_width, render_height)
         self._block_size = (render_width // 9, render_height // 9)
-        offset = (render_width % self._block_size[0],
-                  render_height % self._block_size[1])
-        self._render_grid = (np.linspace(offset[0],
-                                         render_width - offset[0],
-                                         9 + 1,
-                                         dtype=np.int32),
-                             np.linspace(offset[1],
-                                         render_height - offset[1],
-                                         9 + 1,
-                                         dtype=np.int32))
+        offset = (
+            render_width % self._block_size[0],
+            render_height % self._block_size[1],
+        )
+        self._render_grid = (
+            np.linspace(offset[0]//2, render_width - offset[0]//2, 9 + 1, dtype=np.int32),
+            np.linspace(offset[1]//2, render_height - offset[1]//2, 9 + 1, dtype=np.int32),
+        )
         super().__init__(var_names=var_names)
         self._prefilled = number_of_prefilled
         if init_state is not None:
@@ -50,18 +51,19 @@ class Sudoku(CSP):
         # check this to figure out numbers https://towardsdatascience.com/advanced-numpy-master-stride-tricks-with-25-illustrated-exercises-923a9393ab20#1f28
         s = self._state
         # this is a view so value will change as state is changed
-        self.blocks = ast(s,
-                          shape=(3, 3, 3, 3),
-                          strides=(9 * 3 * s.itemsize, 3 * s.itemsize,
-                                   9 * s.itemsize, s.itemsize))
+        self.blocks = ast(
+            s,
+            shape=(3, 3, 3, 3),
+            strides=(9 * 3 * s.itemsize, 3 * s.itemsize, 9 * s.itemsize, s.itemsize),
+        )
 
     @property
     def unassigned_vars(self):
-        return np.where(self._state.reshape(-1, ) == -1)[0]
+        return np.where(self._state.reshape(-1,) == -1)[0]
 
     @property
     def assigned_vars(self):
-        return np.where(self._state.reshape(-1, ) > -1)[0]
+        return np.where(self._state.reshape(-1,) > -1)[0]
 
     def _check_consistency(self):
         # each row and col must contain different numbers
@@ -89,13 +91,15 @@ class Sudoku(CSP):
         # empty state run with
         self._state = np.ones(81, dtype=np.int8).reshape(9, 9) * (-1)
         s = self._state
-        self.blocks = ast(s,
-                          shape=(3, 3, 3, 3),
-                          strides=(9 * 3 * s.itemsize, 3 * s.itemsize,
-                                   9 * s.itemsize, s.itemsize))
+        self.blocks = ast(
+            s,
+            shape=(3, 3, 3, 3),
+            strides=(9 * 3 * s.itemsize, 3 * s.itemsize, 9 * s.itemsize, s.itemsize),
+        )
         # TODO: some randomness to find different initial solution..?
-        solution = backtrack_search(self, graph, mrv_heuristics,
-                                    generate_domain_values, forward_checking)
+        solution = backtrack_search(
+            self, graph, mrv_heuristics, generate_domain_values, forward_checking
+        )
         if solution is None:
             raise Exception("Can't find starting solution for Sudoku!")
         print("Initial solution found:", self._state)
@@ -119,9 +123,13 @@ class Sudoku(CSP):
                     ss = Sudoku(self._prefilled, init_state=self._state)
                     graph = ConstraintGraph(ss)
                     # any solution is fine
-                    sol = backtrack_search(ss, graph, mrv_heuristics,
-                                           generate_domain_values,
-                                           forward_checking)
+                    sol = backtrack_search(
+                        ss,
+                        graph,
+                        mrv_heuristics,
+                        generate_domain_values,
+                        forward_checking,
+                    )
                 # if no solution exists remove assignment and test again
                 if sol is None:
                     print(f"No solution found removing variable {var}")
@@ -147,7 +155,7 @@ class Sudoku(CSP):
         if type(action[0]) is tuple:
             self._state[action[0]] = action[1]
         else:
-            self._state.reshape(-1, )[action[0]] = action[1]
+            self._state.reshape(-1,)[action[0]] = action[1]
         # else:
         # raise Exception("Invalid variable type")
 
@@ -185,10 +193,16 @@ class Sudoku(CSP):
                     return False
             # check if on same box
             sud = np.arange(81).reshape(9, 9).astype(np.int8)
-            blocks = ast(sud,
-                         shape=(3, 3, 3, 3),
-                         strides=(9 * 3 * sud.itemsize, 3 * sud.itemsize,
-                                  9 * sud.itemsize, sud.itemsize))
+            blocks = ast(
+                sud,
+                shape=(3, 3, 3, 3),
+                strides=(
+                    9 * 3 * sud.itemsize,
+                    3 * sud.itemsize,
+                    9 * sud.itemsize,
+                    sud.itemsize,
+                ),
+            )
             # if (x//9 == y//9 and np.abs(x-y)<3) or (x%9 == y%9 and np.abs(x-y)<=9*2):
             for i in range(blocks.shape[0]):
                 for j in range(blocks.shape[1]):
@@ -207,28 +221,79 @@ class Sudoku(CSP):
         # draw grid
         for i, (x, y) in enumerate(zip(*self._render_grid)):
             thick = 3 if i % 3 == 0 else 1
-            cv2.line(canvas, (x, 0), (x, self._render_grid[1][-1]), (0, 0, 0),
-                     thickness=thick)
-            cv2.line(canvas, (0, y), (self._render_grid[0][-1], y), (0, 0, 0),
-                     thickness=thick)
+            cv2.line(
+                canvas,
+                (x, 0),
+                (x, self._render_grid[1][-1]),
+                (0, 0, 0),
+                thickness=thick,
+            )
+            cv2.line(
+                canvas,
+                (0, y),
+                (self._render_grid[0][-1], y),
+                (0, 0, 0),
+                thickness=thick,
+            )
 
         for x in range(self._state.shape[1]):
             for y in range(self._state.shape[0]):
                 val = self._state[y, x]
                 if val > -1:
                     val += 1
-                    pos = (x * self._block_size[0] + self._block_size[0] // 4,
-                           int(y * self._block_size[1] +
-                               self._block_size[1] * .7))
-                    canvas = cv2.putText(canvas, f'{val}', pos,
-                                         cv2.QT_FONT_BLACK, 2, (0, 0, 0), 6,
-                                         cv2.LINE_AA)
+                    pos = (
+                        x * self._block_size[0] + self._block_size[0] // 4,
+                        int(y * self._block_size[1] + self._block_size[1] * 0.7),
+                    )
+                    canvas = cv2.putText(
+                        canvas,
+                        f"{val}",
+                        pos,
+                        cv2.QT_FONT_BLACK,
+                        2,
+                        (0, 0, 0),
+                        6,
+                        cv2.LINE_AA,
+                    )
 
         return canvas
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
+    wname = "Sudoku"
+    print("Generating Sudoku...")
     s = Sudoku(number_of_prefilled=30)
-    cv2.imshow('Sudoku', s.render())
-    if cv2.waitKey(0) & 0xFF == ord('q'):
-        cv2.destroyAllWindows()
+    cv2.namedWindow(wname)
+    nums = [ord(str(i)) for i in range(1, 10)]
+    number = -1
+    def onMouse(event, x, y, flags, param):
+        global number
+        if event == cv2.EVENT_LBUTTONDOWN:
+            # get cell at x, y
+            row, col = int(y / s._block_size[1]), int(x / s._block_size[0])
+            _, done = s.step(((row, col), number))
+            number = -1
+            if s.is_solution:
+                print("Congratulations you solved it!")
+            elif len(s.unassigned_vars) == 0 and not done:
+                print("That doesn't look right, please re-try!")
+
+    cv2.setMouseCallback(wname, onMouse)
+
+    while True:
+        cv2.imshow(wname, s.render())
+        k = cv2.waitKey(100) & 0xFF
+        # q or esc to quit
+        if k == 27 or k == ord("q"):
+            break
+        # no key
+        elif k==255:
+            continue
+        try:
+            # press a number before clicking to insert it
+            number = nums.index(k)
+            print("number", number)
+        except:
+            # press any other button but numbers 1 to 9 to remove inserted numbers
+            number = -1
+
