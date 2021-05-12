@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Tuple, Union
 import numpy as np
 import enum
 import cv2
@@ -50,10 +50,13 @@ class Snake:
         # going E/Right
         self.current_dir = np.array([1, 0], dtype=np.int8)
 
-    def step(self, action: Action):
+    def step(self, action: Union[Action, int]):
         if self.done:
             return None, self.done
-        direction = self.current_dir if action is None else dir_offset[action.value]
+        if type(action) is int:
+            action = Action(action)
+        direction = self.current_dir if action is None else dir_offset[
+            action.value]
         # can't go opposite direction
         if self.current_dir @ direction == -1:
             direction = self.current_dir
@@ -100,7 +103,7 @@ class Snake:
         # for now spawn food anywhere even on snake body
         self.food = np.random.randint(0, self.size - 1, 2)
 
-    def render(self):
+    def render(self, normalize=False):
         canvas = np.ones((*self._render_shape, 3), dtype=np.uint8) * 255
 
         # draw snake
@@ -121,7 +124,14 @@ class Snake:
                         self._block_size[i] / 2) for i in range(2)
                 ]), self._block_size[0] // 2, (0, 50, 150), -1)
 
+        if normalize:
+            canvas = canvas.astype(np.float32) / 255.
         return canvas
+
+    @property
+    def won(self):
+        # TODO: win condition?
+        return False
 
 
 FORWARD_KEY = "w"
@@ -136,8 +146,9 @@ if __name__ == '__main__':
     cv2.imshow('Snake', snake.render())
 
     while not snake.done:
-        keystroke = cv2.waitKey(int(1/speed*1e3) if continuous_movement else 0)
-        
+        keystroke = cv2.waitKey(
+            int(1 / speed * 1e3) if continuous_movement else 0)
+
         # no key pressed
         if keystroke == -1:
             action = None
@@ -150,7 +161,7 @@ if __name__ == '__main__':
             action = Action.RIGHT
         elif keystroke == ord(DOWN_KEY):
             action = Action.DOWN
-        elif keystroke == ord(QUIT) or keystroke==27:
+        elif keystroke == ord(QUIT) or keystroke == 27:
             break
         else:
             print("INVALID KEY")
