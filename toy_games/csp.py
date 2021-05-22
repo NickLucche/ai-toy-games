@@ -1,6 +1,6 @@
 from toy_games.games import CSP
 from toy_games.games.n_queens import NQueens
-from typing import Callable, Iterable, List, Tuple, Union, Any
+from typing import Callable, Iterable, List, Tuple, Union, Any, Generator
 import numpy as np
 from collections import deque
 
@@ -10,6 +10,7 @@ class CSPNode:
     var_id: int
     domain: np.ndarray
     var_name: str
+    n_conflicts: int = -1
 
     def __init__(self, var: int, domain, var_name: str = None) -> None:
         self.var_id = var
@@ -33,8 +34,17 @@ class CSPNode:
     def add_value_to_domain(self, value: int):
         self.domain = np.append(self.domain, value)
 
+    def sample_from_domain(self, values=1):
+        return np.random.choice(self.domain, values)
+
     def __eq__(self, o: object) -> bool:
         return self.var_id == o.var_id
+
+    def __str__(self) -> str:
+        return self.var_name
+
+    def __repr__(self) -> str:
+        return self.var_name
 
 
 class ConstraintGraph:
@@ -71,7 +81,8 @@ class ConstraintGraph:
 
     def generate_neighbors(self,
                            node: CSPNode,
-                           exclude_neighbors: List[CSPNode] = None) -> CSPNode:
+                           exclude_neighbors: List[CSPNode] = None
+                           ) -> Generator[CSPNode, None, None]:
         # returns neighbors of a node assuming arcs is 'ordered' wrt first arc
         # (e.g [(x1, _)..(x2,)..(xn, _)])
         if not self._arcs_flag:
@@ -145,7 +156,7 @@ class ConstraintGraph:
         # def _ccheck(x, dx, y, dy):
         # for vars, con in cons_list:
         # if vars[0] == self.get_node(x) and vars[1] == self.get_node(y):
-        # eval usage    
+        # eval usage
         # self.constraint_check
 
 

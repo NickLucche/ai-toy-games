@@ -65,6 +65,9 @@ class Sudoku(CSP):
     def assigned_vars(self):
         return np.where(self._state.reshape(-1,) > -1)[0]
 
+    def assignment(self):
+        return self._state.reshape(-1,)
+
     def _check_consistency(self):
         # each row and col must contain different numbers
         state_transpose = self._state.T
