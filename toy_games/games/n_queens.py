@@ -1,9 +1,6 @@
 from typing import List
 import numpy as np
 import cv2
-# import sys, os
-# curdir = os.path.dirname(os.path.realpath(__file__))
-# sys.path.insert(0, os.path.abspath(os.path.join(curdir, os.pardir)))
 from toy_games.games import CSP
 
 
@@ -153,10 +150,10 @@ class NQueens(CSP):
 
 if __name__ == '__main__':
     game = NQueens(n=8)
-    # for i in range(16):
-        # _, valid = game.step((i, i))
-        # print('Consistent step:', valid)
-    game._state = np.asarray([0, 6, 1, 7, 5, 0, 2, 4])
+    for i in range(8):
+        _, valid = game.step((i, i))
+        print('Consistent step:', valid)
+    # game._state = np.asarray([0, 6, 1, 7, 5, 0, 2, 4])
     cv2.imshow('N Queens', game.render())
     if cv2.waitKey(0) & 0xFF == ord('q'):
         cv2.destroyAllWindows()
