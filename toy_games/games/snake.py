@@ -53,7 +53,7 @@ class Snake:
     def step(self, action: Union[Action, int]):
         if self.done:
             return None, self.done
-        if type(action) is int:
+        if not isinstance(action, Action):
             action = Action(action)
         direction = self.current_dir if action is None else dir_offset[
             action.value]
@@ -88,7 +88,7 @@ class Snake:
             self.body.append(self.body[-1].copy())
             self.body_lenght += 1
             self.score += 1
-            print("Score:", self.score)
+            # print("Score:", self.score)
 
         for i in range(self.body_lenght - 1, 0, -1):
             # check collision as you move body

@@ -30,7 +30,7 @@ class SnakeEnv(gym.Env):
         self.render_shape = render_shape
         self.observation_space = Box(low=0.,
                                      high=1.,
-                                     shape=render_shape,
+                                     shape=(*render_shape, 3),
                                      dtype=np.float32)
         self.render_mode = render_mode
 
@@ -80,7 +80,7 @@ if __name__ == '__main__':
     import cv2
     cv2.namedWindow('Snake')
     # env = SnakeEnv(20, walls=False)
-    env = gym.make('toy_games:Snake-v0', grid_size=30, walls=False)
+    env = gym.make('toy_games:Snake-v0', grid_size=30, walls=False)#, render_shape=(84,84))
     cv2.imshow('Snake', env.reset())
     for i in range(10):
         cv2.imshow('Snake', env.render())
