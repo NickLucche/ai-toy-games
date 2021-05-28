@@ -11,11 +11,15 @@ All games are playable and you can run them by executing the corresponding file/
 
 You can then test out how different configuration play out (e.g. size of grid world).
 # Examples
-`Sliding Block Puzzle, A* search`
+### Sliding Block Puzzle, A* search
+___
 ![](assets/sbp.gif)
-`N Queens, backtrack search`
+### N Queens, backtrack search
+___
 ![](assets/nqueens.gif)
-`Sudoku, generating solvable sudokus through backtrack search`
+### Sudoku, generating solvable sudokus through backtrack search
+___
 ![](assets/sudoku.gif)
-`Snake, DQN`
+### Snake (with Gym snake environment), DQN
+___
 ![](assets/snake.gif)
