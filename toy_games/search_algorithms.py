@@ -1,6 +1,6 @@
 from typing import Callable
 import numpy as np
-from games.sliding_block_puzzle import Direction, SBPuzzle
+from toy_games.games.sliding_block_puzzle import Direction, SBPuzzle
 from collections import deque
 import time
 from heapq import heapify, heappop, heappush
