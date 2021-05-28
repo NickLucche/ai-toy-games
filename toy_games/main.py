@@ -8,6 +8,30 @@ import matplotlib.pyplot as plt
 from toy_games.search_algorithms import *
 from argparse import ArgumentParser
 
+
+class RenderGameWrapper(object):
+    game: CSP
+    observations = []
+    step_counter: int
+
+    def __init__(self, game, save_every: int = 1):
+        self.game = game
+        self.step_counter = 0
+        self.save_every = save_every
+        self.max_steps = 100000
+
+    def step(self, action):
+        ret = self.game.step(action)
+        if self.step_counter < self.max_steps and self.step_counter % self.save_every == 0:
+            self.observations.append(game.render())
+
+        self.step_counter += 1
+        return ret
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self.game, name)
+
+
 if __name__ == '__main__':
     args = ArgumentParser()
     args.add_argument('-g',
@@ -47,7 +71,6 @@ if __name__ == '__main__':
     # dirs = [Direction.UP, Direction.RIGHT, Direction.DOWN, Direction.LEFT]
     if args.make_gif:
         from PIL import Image
-        output_path = args.make_gif
     print("Searching for solution..")
     print(game.state)
     images = []
@@ -83,7 +106,11 @@ if __name__ == '__main__':
                         cv2.destroyAllWindows()
                         visualize = False
     elif isinstance(game, NQueens):
-        const_graph = ConstraintGraph(game)
+        if args.make_gif:
+            game = RenderGameWrapper(game, save_every=1)
+            const_graph = ConstraintGraph(game.game)
+        else:
+            const_graph = ConstraintGraph(game)
 
         def no_inferences(*args):
             return [], []
@@ -99,6 +126,9 @@ if __name__ == '__main__':
             if visualize:
                 cv2.imshow('N Queens', solution.render())
                 cv2.waitKey(0)
+        if args.make_gif:
+            images = list(
+                map(lambda img: Image.fromarray(img), game.observations))
     if visualize:
         cv2.destroyAllWindows()
 
@@ -111,5 +141,5 @@ if __name__ == '__main__':
                  format='GIF',
                  append_images=imgs,
                  save_all=True,
-                 duration=200,
+                 duration=400,
                  loop=0)

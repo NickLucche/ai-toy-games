@@ -141,6 +141,11 @@ QUIT = "q"
 if __name__ == '__main__':
     continuous_movement = True
     speed = 15
+    make_gif = False
+    if make_gif:
+        from PIL import Image
+        frames = []
+
     snake = Snake(30, 4, walls=False, render_width=900, render_height=900)
     cv2.imshow('Snake', snake.render())
 
@@ -167,9 +172,23 @@ if __name__ == '__main__':
             continue
         snake.step(action)
         # snake.step(list(Action)[np.random.randint(4)])
-        cv2.imshow('Snake', snake.render())
+        frame = snake.render()
+        cv2.imshow('Snake', frame)
+        if make_gif:
+            frames.append(frame)
     if snake.won:
         print("Congratulations you made it!")
     else:
         print("Darn, gotta try harder, better luck next time!")
     cv2.destroyAllWindows()
+
+    if make_gif:
+        frames = list(map(lambda img: Image.fromarray(img[...,::-1]), frames))
+        print("Writing GIF..")
+        img, *imgs = frames
+        img.save(fp='assets/snake.gif',
+                    format='GIF',
+                    append_images=imgs,
+                    save_all=True,
+                    duration=200,
+                    loop=0)

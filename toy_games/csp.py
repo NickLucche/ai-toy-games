@@ -263,9 +263,6 @@ def least_constraining_values(game: CSP, csp: ConstraintGraph, var: CSPNode):
     for the neighboring variables in the constraint graph, 'fail-last' approach.
     Generates domain values for variable `var` following order described above.
     """
-    # for value in var.domain:
-    # for neigh in csp.generate_neighbors(var):
-    # csp.constraint_check()
     pass
 
 

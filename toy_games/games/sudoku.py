@@ -33,8 +33,14 @@ class Sudoku(CSP):
             render_height % self._block_size[1],
         )
         self._render_grid = (
-            np.linspace(offset[0]//2, render_width - offset[0]//2, 9 + 1, dtype=np.int32),
-            np.linspace(offset[1]//2, render_height - offset[1]//2, 9 + 1, dtype=np.int32),
+            np.linspace(offset[0] // 2,
+                        render_width - offset[0] // 2,
+                        9 + 1,
+                        dtype=np.int32),
+            np.linspace(offset[1] // 2,
+                        render_height - offset[1] // 2,
+                        9 + 1,
+                        dtype=np.int32),
         )
         super().__init__(var_names=var_names)
         self._prefilled = number_of_prefilled
@@ -54,19 +60,20 @@ class Sudoku(CSP):
         self.blocks = ast(
             s,
             shape=(3, 3, 3, 3),
-            strides=(9 * 3 * s.itemsize, 3 * s.itemsize, 9 * s.itemsize, s.itemsize),
+            strides=(9 * 3 * s.itemsize, 3 * s.itemsize, 9 * s.itemsize,
+                     s.itemsize),
         )
 
     @property
     def unassigned_vars(self):
-        return np.where(self._state.reshape(-1,) == -1)[0]
+        return np.where(self._state.reshape(-1, ) == -1)[0]
 
     @property
     def assigned_vars(self):
-        return np.where(self._state.reshape(-1,) > -1)[0]
+        return np.where(self._state.reshape(-1, ) > -1)[0]
 
     def assignment(self):
-        return self._state.reshape(-1,)
+        return self._state.reshape(-1, )
 
     def _check_consistency(self):
         # each row and col must contain different numbers
@@ -97,12 +104,11 @@ class Sudoku(CSP):
         self.blocks = ast(
             s,
             shape=(3, 3, 3, 3),
-            strides=(9 * 3 * s.itemsize, 3 * s.itemsize, 9 * s.itemsize, s.itemsize),
+            strides=(9 * 3 * s.itemsize, 3 * s.itemsize, 9 * s.itemsize,
+                     s.itemsize),
         )
-        # TODO: some randomness to find different initial solution..?
-        solution = backtrack_search(
-            self, graph, mrv_heuristics, generate_domain_values, forward_checking
-        )
+        solution = backtrack_search(self, graph, mrv_heuristics,
+                                    generate_domain_values, forward_checking)
         if solution is None:
             raise Exception("Can't find starting solution for Sudoku!")
         print("Initial solution found:", self._state)
@@ -158,7 +164,7 @@ class Sudoku(CSP):
         if type(action[0]) is tuple:
             self._state[action[0]] = action[1]
         else:
-            self._state.reshape(-1,)[action[0]] = action[1]
+            self._state.reshape(-1, )[action[0]] = action[1]
         # else:
         # raise Exception("Invalid variable type")
 
@@ -246,7 +252,8 @@ class Sudoku(CSP):
                     val += 1
                     pos = (
                         x * self._block_size[0] + self._block_size[0] // 4,
-                        int(y * self._block_size[1] + self._block_size[1] * 0.7),
+                        int(y * self._block_size[1] +
+                            self._block_size[1] * 0.7),
                     )
                     canvas = cv2.putText(
                         canvas,
@@ -264,11 +271,33 @@ class Sudoku(CSP):
 
 if __name__ == "__main__":
     wname = "Sudoku"
+    make_gif = False
     print("Generating Sudoku...")
+    if make_gif:
+        import random
+        from PIL import Image
+        frames = []
+        # generate random solvable sudokus
+        for _ in range(25):
+            prefilled = random.randint(25, 80)
+            s = Sudoku(number_of_prefilled=prefilled)
+            frames.append(s.render())
+        print("Writing GIF..")
+        frames = list(map(lambda img: Image.fromarray(img), frames))
+        img, *imgs = frames
+        img.save(fp='assets/sudoku.gif',
+                 format='GIF',
+                 append_images=imgs,
+                 save_all=True,
+                 duration=2000,
+                 loop=0)
+        exit()
+
     s = Sudoku(number_of_prefilled=30)
     cv2.namedWindow(wname)
     nums = [ord(str(i)) for i in range(1, 10)]
     number = -1
+
     def onMouse(event, x, y, flags, param):
         global number
         if event == cv2.EVENT_LBUTTONDOWN:
@@ -290,7 +319,7 @@ if __name__ == "__main__":
         if k == 27 or k == ord("q"):
             break
         # no key
-        elif k==255:
+        elif k == 255:
             continue
         try:
             # press a number before clicking to insert it
@@ -299,4 +328,3 @@ if __name__ == "__main__":
         except:
             # press any other button but numbers 1 to 9 to remove inserted numbers
             number = -1
-
