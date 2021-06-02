@@ -22,12 +22,10 @@ class Snake:
     size: int
     # body implemented as a list rather than a linked list
     # assuming x, y format with origin in top-left corner
-    body: List[np.ndarray] = []
+    body: List[np.ndarray]
     body_lenght: int
-    food: np.ndarray = None
+    food: np.ndarray
     current_dir: np.ndarray
-    done = False
-    score = 0
 
     def __init__(self,
                  n: int,
@@ -36,15 +34,20 @@ class Snake:
                  render_width=800,
                  render_height=800) -> None:
         self.size = n
-        self._initialize_body(body_len)
+        self._initialize(body_len)
         self.body_lenght = body_len
         self.walls = walls
         self._render_shape = (render_width, render_height)
         self._block_size = (render_width // n, render_height // n)
 
-    def _initialize_body(self, body_len):
+    def _initialize(self, body_len):
         assert self.size // 2 > body_len, 'Body too long to start from center!'
+        self.food = None
+        self.done = False
+        self.score = 0
+
         mid = self.size // 2
+        self. body = []
         for i in range(body_len):
             self.body.append(np.array([mid - i, mid], dtype=np.int32))
         # going E/Right
@@ -103,15 +106,18 @@ class Snake:
         # TODO: for now spawn food anywhere even on snake body
         self.food = np.random.randint(0, self.size - 1, 2)
 
-    def render(self, normalize=False):
-        canvas = np.ones((*self._render_shape, 3), dtype=np.uint8) * 255
+    def render(self, normalize=False, render_shape:Tuple[int, int]=None):
+        render_shape = self._render_shape if render_shape is None else render_shape
+        block_size = self._block_size if render_shape is None else (render_shape[0] // self.size, render_shape[1] // self.size)
+
+        canvas = np.ones((*render_shape, 3), dtype=np.uint8) * 255
 
         # draw snake
         for block in self.body:
-            top_leftc = (int(block[0] * self._block_size[0]),
-                         int(block[1] * self._block_size[1]))
-            btm_rightc = (top_leftc[0] + self._block_size[0],
-                          top_leftc[1] + self._block_size[1])
+            top_leftc = (int(block[0] * block_size[0]),
+                         int(block[1] * block_size[1]))
+            btm_rightc = (top_leftc[0] + block_size[0],
+                          top_leftc[1] + block_size[1])
             canvas = cv2.rectangle(canvas, top_leftc, btm_rightc, (50, 150, 0),
                                    -1)
 
@@ -120,9 +126,9 @@ class Snake:
             canvas = cv2.circle(
                 canvas,
                 tuple([
-                    int(self.food[i] * self._block_size[i] +
-                        self._block_size[i] / 2) for i in range(2)
-                ]), self._block_size[0] // 2, (0, 50, 150), -1)
+                    int(self.food[i] * block_size[i] +
+                        block_size[i] / 2) for i in range(2)
+                ]), block_size[0] // 2, (0, 50, 150), -1)
 
         if normalize:
             canvas = canvas.astype(np.float32) / 255.

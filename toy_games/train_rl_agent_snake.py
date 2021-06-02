@@ -109,21 +109,21 @@ if __name__ == "__main__":
         env = Array2Tensor(env)
         return env
 
-    # env = make_snake_env((512, 512))
-    # import matplotlib.pyplot as plt
-    # obs = env.reset()
-    # for i in range(3):
-    #     obs, reward, done, _ = env.step(env.action_space.sample())
-    #     print(obs.shape, obs.dtype)
-    #     fig, ax = plt.subplots(len(obs))
-    #     for i, o in enumerate(obs):
-    #         ax[i].imshow(o, cmap='gray')
-    #     plt.show()
-    #     print("Reward:", reward, "Done:", done)
-    #     if done:
-    #         print('dead')
-    #         break
-    # exit()
+    env = make_snake_env((512, 512))
+    import matplotlib.pyplot as plt
+    obs = env.reset()
+    for i in range(3):
+        obs, reward, done, _ = env.step(env.action_space.sample())
+        print(obs.shape, obs.dtype)
+        fig, ax = plt.subplots(len(obs))
+        for i, o in enumerate(obs):
+            ax[i].imshow(o, cmap='gray')
+        plt.show()
+        print("Reward:", reward, "Done:", done)
+        if done:
+            print('dead')
+            break
+    exit()
 
     env = make_snake_env()
     # TODO: check it works, hstack obs and plot them first
