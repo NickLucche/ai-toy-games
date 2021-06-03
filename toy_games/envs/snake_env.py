@@ -79,10 +79,11 @@ class SnakeEnv(gym.Env):
         """
         food_reward_multiplier = 10
         step_penalty = 1
+        win_lose_reward = 1e3
 
         if self._env.done:
             # TODO: tune, o/w the jackass will instantly suicide to maximize reward
-            return 1000000 if self._env.won else -1000000
+            return win_lose_reward if self._env.won else -win_lose_reward
         score = self._env.score
         r = food_reward_multiplier*(score - self._current_ep_score) - step_penalty
         self._current_ep_score = score

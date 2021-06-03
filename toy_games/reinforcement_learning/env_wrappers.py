@@ -2,16 +2,29 @@ from gym import Wrapper, ObservationWrapper
 import numpy as np
 import gym
 import torch
+import cv2
 
 class PreprocessingWrapper(ObservationWrapper):
+    def __init__(self, env):
+        super(PreprocessingWrapper, self).__init__(env)
+        old_space = env.observation_space
+        self.observation_space = gym.spaces.Box(
+            low=0,
+            high=255,
+            shape=old_space.shape[0:2],
+            dtype=old_space.dtype,
+        )
+
     def observation(self, obs):
         """preprocess the obs"""
         return PreprocessingWrapper.process(obs)
 
     @staticmethod
     def process(img: np.ndarray):
-        # single channel
-        return img[:, :, 0] * 0.299 + img[:, :, 1] * 0.587 + img[:, :, 2] * 0.114
+        # single channel float32
+        # return img[:, :, 0] * 0.299 + img[:, :, 1] * 0.587 + img[:, :, 2] * 0.114
+        # single channel uint8
+        return cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
 
 
 
@@ -24,8 +37,8 @@ class BufferWrapper(ObservationWrapper):
         self.buffer = None
         old_space = env.observation_space
         self.observation_space = gym.spaces.Box(
-            low=0.0,
-            high=1.0,
+            low=0.0 if dtype==np.float32 else 0,
+            high=1.0 if dtype==np.float32 else 255,
             shape=(n_steps, *resolution),
             dtype=dtype,
         )
