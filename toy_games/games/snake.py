@@ -6,8 +6,7 @@ import cv2
 # search here is done by finding path from snake to food, each time new food is added.
 # Problem is that shortest path is not optimal (you end up hitting yourself) so you can use longest path finding + hamiltonian cycles
 dir_offset = [
-    np.asarray([x, y], dtype=np.int8)
-    for x, y in [(0, -1), (1, 0), (0, 1), (-1, 0)]
+    np.asarray([x, y], dtype=np.int8) for x, y in [(0, -1), (1, 0), (0, 1), (-1, 0)]
 ]
 
 
@@ -27,28 +26,26 @@ class Snake:
     food: np.ndarray
     current_dir: np.ndarray
 
-    def __init__(self,
-                 n: int,
-                 body_len: int = 4,
-                 walls=True,
-                 render_width=800,
-                 render_height=800) -> None:
+    def __init__(
+        self, n: int, body_len: int = 4, walls=True, render_width=800, render_height=800
+    ) -> None:
         self.size = n
-        self._initialize(body_len)
-        self.body_lenght = body_len
+        self.init_body_lenght = body_len
+        self._initialize()
         self.walls = walls
         self._render_shape = (render_width, render_height)
         self._block_size = (render_width // n, render_height // n)
 
-    def _initialize(self, body_len):
-        assert self.size // 2 > body_len, 'Body too long to start from center!'
+    def _initialize(self):
+        self.body_lenght = self.init_body_lenght
+        assert self.size // 2 > self.body_lenght, "Body too long to start from center!"
         self.food = None
         self.done = False
         self.score = 0
 
         mid = self.size // 2
-        self. body = []
-        for i in range(body_len):
+        self.body = []
+        for i in range(self.body_lenght):
             self.body.append(np.array([mid - i, mid], dtype=np.int32))
         # going E/Right
         self.current_dir = np.array([1, 0], dtype=np.int8)
@@ -58,8 +55,7 @@ class Snake:
             return None, self.done
         if not isinstance(action, Action):
             action = Action(action)
-        direction = self.current_dir if action is None else dir_offset[
-            action.value]
+        direction = self.current_dir if action is None else dir_offset[action.value]
         # can't go opposite direction
         if self.current_dir @ direction == -1:
             direction = self.current_dir
@@ -67,8 +63,7 @@ class Snake:
             self.current_dir = direction
         # check wall
         newhead = self.body[0] + direction
-        if self.walls and ((newhead >= self.size).any() or
-                           (newhead <= -1).any()):
+        if self.walls and ((newhead >= self.size).any() or (newhead <= -1).any()):
             # you're dead
             self.done = True
             return None, self.done
@@ -106,37 +101,44 @@ class Snake:
         # TODO: for now spawn food anywhere even on snake body
         self.food = np.random.randint(0, self.size - 1, 2)
 
-    def render(self, normalize=False, render_shape:Tuple[int, int]=None):
+    def render(self, normalize=False, render_shape: Tuple[int, int] = None):
         render_shape = self._render_shape if render_shape is None else render_shape
-        block_size = self._block_size if render_shape is None else (render_shape[0] // self.size, render_shape[1] // self.size)
+        block_size = (
+            self._block_size
+            if render_shape is None
+            else (render_shape[0] // self.size, render_shape[1] // self.size)
+        )
 
         canvas = np.ones((*render_shape, 3), dtype=np.uint8) * 255
 
         # draw snake
         for block in self.body:
-            top_leftc = (int(block[0] * block_size[0]),
-                         int(block[1] * block_size[1]))
-            btm_rightc = (top_leftc[0] + block_size[0],
-                          top_leftc[1] + block_size[1])
-            canvas = cv2.rectangle(canvas, top_leftc, btm_rightc, (50, 150, 0),
-                                   -1)
+            top_leftc = (int(block[0] * block_size[0]), int(block[1] * block_size[1]))
+            btm_rightc = (top_leftc[0] + block_size[0], top_leftc[1] + block_size[1])
+            canvas = cv2.rectangle(canvas, top_leftc, btm_rightc, (50, 150, 0), -1)
 
         # draw food
         if self.food is not None:
             canvas = cv2.circle(
                 canvas,
-                tuple([
-                    int(self.food[i] * block_size[i] +
-                        block_size[i] / 2) for i in range(2)
-                ]), block_size[0] // 2, (0, 50, 150), -1)
+                tuple(
+                    [
+                        int(self.food[i] * block_size[i] + block_size[i] / 2)
+                        for i in range(2)
+                    ]
+                ),
+                block_size[0] // 2,
+                (0, 50, 150),
+                -1,
+            )
 
         if normalize:
-            canvas = canvas.astype(np.float32) / 255.
+            canvas = canvas.astype(np.float32) / 255.0
         return canvas
 
     @property
     def won(self):
-        return self.body_lenght >= (self.size*self.size)
+        return self.body_lenght >= (self.size * self.size)
 
 
 FORWARD_KEY = "w"
@@ -144,20 +146,20 @@ LEFT_KEY = "a"
 RIGHT_KEY = "d"
 DOWN_KEY = "s"
 QUIT = "q"
-if __name__ == '__main__':
+if __name__ == "__main__":
     continuous_movement = True
     speed = 15
     make_gif = False
     if make_gif:
         from PIL import Image
+
         frames = []
 
     snake = Snake(30, 4, walls=False, render_width=900, render_height=900)
-    cv2.imshow('Snake', snake.render())
+    cv2.imshow("Snake", snake.render())
 
     while not snake.done:
-        keystroke = cv2.waitKey(
-            int(1 / speed * 1e3) if continuous_movement else 0)
+        keystroke = cv2.waitKey(int(1 / speed * 1e3) if continuous_movement else 0)
 
         # no key pressed
         if keystroke == -1:
@@ -179,7 +181,7 @@ if __name__ == '__main__':
         snake.step(action)
         # snake.step(list(Action)[np.random.randint(4)])
         frame = snake.render()
-        cv2.imshow('Snake', frame)
+        cv2.imshow("Snake", frame)
         if make_gif:
             frames.append(frame)
     if snake.won:
@@ -189,12 +191,15 @@ if __name__ == '__main__':
     cv2.destroyAllWindows()
 
     if make_gif:
-        frames = list(map(lambda img: Image.fromarray(img[...,::-1]), frames))
+        frames = list(map(lambda img: Image.fromarray(img[..., ::-1]), frames))
         print("Writing GIF..")
         img, *imgs = frames
-        img.save(fp='assets/snake.gif',
-                    format='GIF',
-                    append_images=imgs,
-                    save_all=True,
-                    duration=200,
-                    loop=0)
+        img.save(
+            fp="assets/snake.gif",
+            format="GIF",
+            append_images=imgs,
+            save_all=True,
+            duration=200,
+            loop=0,
+        )
+

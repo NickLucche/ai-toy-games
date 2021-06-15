@@ -43,9 +43,6 @@ class SnakeEnv(gym.Env):
             )
         self.render_mode = render_mode
         self._snake_kwargs = snake_kwargs
-
-    def reset(self):
-        # TODO: shouldnt redo object
         self._env = Snake(
             self.grid_size,
             walls=self.walls,
@@ -53,6 +50,9 @@ class SnakeEnv(gym.Env):
             render_height=self.render_shape[1],
             **self._snake_kwargs
         )  # 🐍
+
+    def reset(self):
+        self._env._initialize()
         self.ep_counter += 1
         self._current_ep_score = 0
         return self._env.render(normalize=True)
@@ -71,18 +71,19 @@ class SnakeEnv(gym.Env):
         return obs, reward, done, {"body_position": body, "ep_counter": self.ep_counter}
 
     def _get_reward(self):
-        """-`step_penalty` for each step taken (important to have a penalty)
-            `food_reward_multiplier` (-step_penalty) when food is reached, +"a lot" for winning, 
-            -"a lot" for losing (to avoid instant suicide).
+        """ 
+            Computes reward for this step dinamically based on a few parameters hard-coded here.
+            -`step_penalty` for each step taken, +`food_reward_multiplier` when food is reached, 
+            +`win_lose_reward` for winning and -`win_lose_reward` for losing (to avoid instant suicide).
         Returns:
             reward for this step.
         """
-        food_reward_multiplier = 10
-        step_penalty = 1
-        win_lose_reward = 1e3
+        # NOTE: I tuned reward parameters a bit to avoid instant suicide to maximize reward. Yeah, that will happen.
+        food_reward_multiplier = 1 #10
+        step_penalty = 0 #1
+        win_lose_reward = 1 #1e3
 
         if self._env.done:
-            # TODO: tune, o/w the jackass will instantly suicide to maximize reward
             return win_lose_reward if self._env.won else -win_lose_reward
         score = self._env.score
         r = food_reward_multiplier*(score - self._current_ep_score) - step_penalty

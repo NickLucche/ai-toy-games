@@ -10,7 +10,7 @@ def test_make_env():
 def test_run_env():
     import time
     snake = gym.make(env_name, render_shape=(30,30), body_len=4)
-    n_episodes = 10
+    n_episodes = 10000
     fps = 0
     
     s = time.time()
@@ -24,11 +24,11 @@ def test_run_env():
             if done:
                 print("episode over")
                 break
-            if reward==0:
+            if reward>0:
                 body_len += 1
                 score += 1
 
             assert score == snake._env.score
-            assert body_len == len(info['body_position']) >= 4
+            assert body_len == len(info['body_position']) >= 4, f'reward: {reward}'
 
     print("FPS", fps/(time.time()-s))
